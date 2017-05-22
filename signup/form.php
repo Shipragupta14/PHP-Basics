@@ -7,7 +7,9 @@
 <body>
 <?php
 $nameerr = $emailiderr = $gendererr = $websiteerr = $commenterr = "";
+
 $name = $emailid = $gender = $comment = $website = "";
+require('conn.php');
 
 if ($_SERVER["REQUEST_METHOD"] == "POST"){
 	if (empty($_POST["name"])){
@@ -24,12 +26,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST"){
 	}else{
 	$emailid = test($_POST["emailid"]); 
 	if (!filter_var($emailid, FILTER_VALIDATE_EMAIL)) {
-      $emailiderr = "Invalid email format"; 
+        $emailiderr = "Invalid email format"; 
     }
+    $query = "SELECT `emailid` FROM `form` WHERE `emailid` = $emailid ";
+    $sql=mysqli_query( $conn, $query);
+    if($sql)
+    	$emailiderr = "This email is already being used";
 	}
 
 	if (empty($_POST["website"])){
-		$websiteerr = " " ;
+		$websiteerr = "" ;
 	}else{
 	$website = test($_POST["website"]);
 	if (!preg_match("/\b(?:(?:https?|ftp):\/\/|www\.)[-a-z0-9+&@#\/%?=~_|!:,.;]*[-a-z0-9+&@#\/%=~_|]/i",$website)) {
@@ -38,7 +44,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST"){
     }
 
 	if (empty($_POST["comment"])){
-		$commenterr = " " ;
+		$commenterr = "" ;
 	}else{
 	$comment = test($_POST["comment"]); }
 
@@ -46,6 +52,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST"){
 		$gendererr = "Gender is req" ;
 	}else{
 	$gender = test($_POST["gender"]); }
+
+	
+	 if($nameerr == "" && $emailiderr == "" && $gendererr == "" && $websiteerr == "" && $commenterr == ""){
+        $stmt = $conn -> prepare( "INSERT INTO `form` (name, emailid, website, comment, gender) VALUES (?,?,?,?,?)");
+        $stmt->bind_param("sssss", $name, $emailid, $website, $comment, $gender);
+       // $result = mysqli_query($conn, $sql);
+      
+        if($stmt->execute()){
+            echo "User Created Successfully.";
+        }
+    }else{
+            echo "User Registration Failed";
+        }
+
 }
 
 function test($data){
@@ -59,13 +79,13 @@ function test($data){
 <p><span class="error">* required field.</span></p>
 
 <form action = "<?php echo htmlspecialchars($_SERVER["PHP_SELF"]);?>" method="POST">
-	NAME:<input type="text" name="name">
+	NAME:<input type="text" value = "<?php echo $name;?>" name="name">
 	<span class = "error">* <?php echo $nameerr; ?></span>
 	<br><br>
-	EMAILID:<input type="text" name ="emailid">
+	EMAILID:<input type="text" value = "<?php echo $emailid;?>" name ="emailid">
 	<span class="error">* <?php echo $emailiderr; ?></span>
 	<br><br>
-	WEBSITE:<input type="text" name="website">
+	WEBSITE:<input type="text" value = "<?php echo $website;?>"  name="website">
 	<span class = "error"> <?php echo $websiteerr; ?></span>
 	<br><br>
 	COMMENT: <textarea name = "comment" rows="5" cols="20"></textarea>
@@ -79,7 +99,7 @@ function test($data){
 	</form>
 
 <?php
-require('conn.php');
+//require('conn.php');
     // If the values are posted, insert them into the database.
   //  if (isset($_POST['name']) && isset($_POST['emailid'])){
       /*  $name = $_POST['name'];
@@ -87,17 +107,9 @@ require('conn.php');
         $website = $_POST['website'];
         $comment = $_POST['comment'];
         $gender - $_POST['gender']; */
-        $stmt = $conn -> prepare( "INSERT INTO `form` (name, emailid, website, comment, gender) VALUES (?,?,?,?,?)");
-        $stmt->bind_param("sssss", $name, $emailid, $website, $comment, $gender);
-       // $result = mysqli_query($conn, $sql);
-        if($stmt->execute()){
-            $smsg = "User Created Successfully.";
-        }else{
-            $fmsg ="User Registration Failed";
-        }
-
-    //}
+       
 ?>
+
 </body>
 </html>
 

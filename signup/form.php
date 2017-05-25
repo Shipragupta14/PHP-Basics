@@ -24,14 +24,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST"){
 	if (empty($_POST["emailid"])){
 		$emailiderr = "Emailid is req" ;
 	}else{
+		
 	$emailid = test($_POST["emailid"]); 
+	$query = "SELECT `emailid` FROM `form` WHERE `emailid` = '$emailid' ";
+
+    $sql=mysqli_query( $conn, $query);
+  //  echo mysqli_num_rows($sql);
 	if (!filter_var($emailid, FILTER_VALIDATE_EMAIL)) {
         $emailiderr = "Invalid email format"; 
-    }
-    $query = "SELECT `emailid` FROM `form` WHERE `emailid` = $emailid ";
-    $sql=mysqli_query( $conn, $query);
-    if($sql)
+    }elseif( mysqli_num_rows($sql) >  0){
     	$emailiderr = "This email is already being used";
+	}else{
+		
+		$emailid = test($_POST["emailid"]); 
+	}
 	}
 
 	if (empty($_POST["website"])){
@@ -55,6 +61,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST"){
 
 	
 	 if($nameerr == "" && $emailiderr == "" && $gendererr == "" && $websiteerr == "" && $commenterr == ""){
+	 //	echo "I am going to run the query now ";
         $stmt = $conn -> prepare( "INSERT INTO `form` (name, emailid, website, comment, gender) VALUES (?,?,?,?,?)");
         $stmt->bind_param("sssss", $name, $emailid, $website, $comment, $gender);
        // $result = mysqli_query($conn, $sql);
@@ -64,8 +71,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST"){
         }
     }else{
             echo "User Registration Failed";
-        }
-
+        } 
 }
 
 function test($data){
